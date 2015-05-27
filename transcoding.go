@@ -41,6 +41,9 @@ func (t DefaultTranscoder) Decode(bytes []byte, flags uint32, out interface{}) (
 		case *string:
 			*(out.(*string)) = string(bytes)
 			return nil
+		case *interface{}:
+			*(out.(*interface{})) = interface{}(bytes)
+			return nil
 		default:
 			return clientError{"You must encoding binary in a string or byte array, not " + reflect.ValueOf(out).Type().String()}
 		}
