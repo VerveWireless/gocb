@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+const (
+	memdTimeout = 2500 * time.Millisecond
+)
+
 type memdInitFunc func(*memdPipeline) error
 
 type CloseHandler func(*memdPipeline)
@@ -84,10 +88,12 @@ func (pipeline *memdPipeline) ExecuteRequest(req *memdQRequest) (respOut *memdRe
 		return nil, &generalError{"Failed to dispatch operation."}
 	}
 
+	timer := time.NewTimer(memdTimeout)
+	defer timer.Stop()
 	select {
 	case <-signal:
 		return
-	case <-time.After(2500 * time.Millisecond):
+	case <-timer.C:
 		req.Cancel()
 		return nil, &generalError{"Operation timed out."}
 	}

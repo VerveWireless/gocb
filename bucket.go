@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+const (
+	timeout = 10 * time.Second
+)
+
 // An interface representing a single bucket within a cluster.
 type Bucket struct {
 	name       string
@@ -22,8 +26,8 @@ func (b *Bucket) SetTranscoder(transcoder Transcoder) {
 	b.transcoder = transcoder
 }
 
-func (b *Bucket) afterOpTimeout() <-chan time.Time {
-	return time.After(10 * time.Second)
+func (b *Bucket) afterOpTimeout() *time.Timer {
+	return time.NewTimer(timeout)
 }
 
 type pendingOp gocbcore.PendingOp
@@ -56,10 +60,12 @@ func (b *Bucket) hlpGetExec(valuePtr interface{}, execFn hlpGetHandler) (casOut 
 		return 0, err
 	}
 
+	timer := b.afterOpTimeout()
+	defer timer.Stop()
 	select {
 	case <-signal:
 		return
-	case <-b.afterOpTimeout():
+	case <-timer.C:
 		op.Cancel()
 		return 0, timeoutError{}
 	}
@@ -83,10 +89,12 @@ func (b *Bucket) hlpCasExec(execFn hlpCasHandler) (casOut uint64, errOut error) 
 		return 0, err
 	}
 
+	timer := b.afterOpTimeout()
+	defer timer.Stop()
 	select {
 	case <-signal:
 		return
-	case <-b.afterOpTimeout():
+	case <-timer.C:
 		op.Cancel()
 		return 0, timeoutError{}
 	}
@@ -111,10 +119,12 @@ func (b *Bucket) hlpCtrExec(execFn hlpCtrHandler) (valOut uint64, casOut uint64,
 		return 0, 0, err
 	}
 
+	timer := b.afterOpTimeout()
+	defer timer.Stop()
 	select {
 	case <-signal:
 		return
-	case <-b.afterOpTimeout():
+	case <-timer.C:
 		op.Cancel()
 		return 0, 0, timeoutError{}
 	}
