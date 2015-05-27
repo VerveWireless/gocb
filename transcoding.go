@@ -2,6 +2,7 @@ package gocb
 
 import (
 	"encoding/json"
+	"reflect"
 )
 
 type Transcoder interface {
@@ -29,20 +30,27 @@ func (t DefaultTranscoder) Decode(bytes []byte, flags uint32, out interface{}) e
 		return clientError{"Unexpected value compression"}
 	}
 
-	// Normal types of decoding
-	if flags&cfFmtMask == cfFmtBinary {
-		*(out.(*[]byte)) = bytes
-		return nil
-	} else if flags&cfFmtMask == cfFmtString {
-		*(out.(*string)) = string(bytes)
-		return nil
-	} else if flags&cfFmtMask == cfFmtJson {
-		err := json.Unmarshal(bytes, &out)
-		if err != nil {
-			return err
+	format := flags & cfFmtMask
+
+	switch format {
+	case cfFmtBinary, cfFmtString:
+		switch out.(type) {
+		case *[]byte:
+			*(out.(*[]byte)) = bytes
+			return nil
+		case *string:
+			*(out.(*string)) = string(bytes)
+			return nil
+		case *interface{}:
+			*(out.(*interface{})) = interface{}(bytes)
+			return nil
+		default:
+			return clientError{"You must encoding binary in a string or byte array, not " + reflect.ValueOf(out).Type().String()}
 		}
-		return nil
-	} else {
+	case cfFmtJson:
+		err := json.Unmarshal(bytes, &out)
+		return err
+	default:
 		return clientError{"Unexpected flags value"}
 	}
 }
