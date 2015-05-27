@@ -50,6 +50,7 @@ func (t DefaultTranscoder) Decode(bytes []byte, flags uint32, out interface{}) (
 	default:
 		return clientError{"Unexpected flags value"}
 	}
+	return clientError{"Library error. This should never happen."}
 }
 
 func (t DefaultTranscoder) Encode(value interface{}) ([]byte, uint32, error) {
