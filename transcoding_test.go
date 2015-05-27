@@ -90,6 +90,14 @@ func TestDecodeBadType(t *testing.T) {
 	}
 }
 
+func TestDecodeToInterface(t *testing.T) {
+	var testOut interface{}
+	err := defaultTranscoder.Decode(jsonNumStr, 0x2000000, &testOut)
+	if err != nil {
+		t.Errorf("Decoding failed but should have succeeded: %s", err.Error())
+	}
+}
+
 func TestEncodeJson(t *testing.T) {
 	testIn := make(map[string]string)
 	testIn["test"] = "value"
