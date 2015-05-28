@@ -15,6 +15,7 @@ type Agent struct {
 	password string
 	useSsl   bool
 	initFn   memdInitFunc
+	stop     chan bool
 
 	routingInfo routeDataPtr
 	numVbuckets int
@@ -53,6 +54,7 @@ func createAgent(memdAddrs, httpAddrs []string, useSsl bool, bucketName, passwor
 		useSsl:   useSsl,
 		initFn:   initFn,
 		httpCli:  &http.Client{Transport: &http.Transport{TLSClientConfig: tlsc}},
+		stop:     make(chan bool, 1),
 	}
 	if err := c.connect(memdAddrs, httpAddrs); err != nil {
 		return nil, err
@@ -158,6 +160,17 @@ func (c *Agent) connect(memdAddrs, httpAddrs []string) error {
 	c.applyConfig(routeCfg)
 
 	return nil
+}
+
+func (agent *Agent) Close() {
+	agent.stop <- true
+	routingInfo := agent.routingInfo.get()
+	for _, s := range routingInfo.servers {
+		s.Close()
+	}
+	for _, p := range routingInfo.pendingServers {
+		p.Close()
+	}
 }
 
 func (agent *Agent) CloseTest() {

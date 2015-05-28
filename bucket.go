@@ -253,6 +253,10 @@ func (b *Bucket) Counter(key string, delta, initial int64, expiry uint32) (uint6
 	}
 }
 
+func (b *Bucket) Close() {
+	b.agent.Close()
+}
+
 // Returns a CAPI endpoint.  Guarenteed to return something for now...
 func (b *Bucket) getViewEp() string {
 	capiEps := b.client.CapiEps()
