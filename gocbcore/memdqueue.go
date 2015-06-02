@@ -6,6 +6,11 @@ import (
 	"unsafe"
 )
 
+const (
+	// was 5000. is now 5.
+	queueSize = 5
+)
+
 // The data for a request that can be queued with a memdqueueconn,
 //   and can potentially be rerouted to multiple servers due to
 //   configuration changes.
@@ -44,7 +49,7 @@ type memdQueue struct {
 
 func createMemdQueue() *memdQueue {
 	return &memdQueue{
-		reqsCh: make(chan *memdQRequest, 5000),
+		reqsCh: make(chan *memdQRequest, queueSize),
 	}
 }
 

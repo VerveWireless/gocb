@@ -1,5 +1,9 @@
 package gocbcore
 
+import (
+	"errors"
+)
+
 func (c *Agent) handleServerNmv(s *memdPipeline, req *memdQRequest, resp *memdResponse) {
 	// Try to parse the value as a bucket configuration
 	bk, err := parseConfig(resp.Value, s.Hostname())
@@ -332,7 +336,7 @@ func (c *Agent) dispatchDirect(req *memdQRequest) error {
 		if pipeline == nil {
 			// If no routing data exists this indicates that this Agent
 			//   has been shut down!
-			panic("Attempted to perform operation on closed agent.")
+			return errors.New("Attempted to perform operation on closed agent")
 		}
 
 		if !pipeline.QueueRequest(req) {
