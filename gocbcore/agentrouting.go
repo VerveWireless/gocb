@@ -78,6 +78,7 @@ func (agent *Agent) activatePendingServer(server *memdPipeline) bool {
 			revId:      oldRouting.revId,
 			capiEpList: oldRouting.capiEpList,
 			mgmtEpList: oldRouting.mgmtEpList,
+			n1qlEpList: oldRouting.n1qlEpList,
 			vbMap:      oldRouting.vbMap,
 			source:     oldRouting.source,
 			deadQueue:  oldRouting.deadQueue,
@@ -150,6 +151,7 @@ func (agent *Agent) applyConfig(cfg *routeConfig) {
 		revId:      cfg.revId,
 		capiEpList: cfg.capiEpList,
 		mgmtEpList: cfg.mgmtEpList,
+		n1qlEpList: cfg.n1qlEpList,
 		vbMap:      cfg.vbMap,
 		source:     cfg,
 	}
@@ -294,7 +296,7 @@ func (agent *Agent) updateConfig(bk *cfgBucket) {
 		agent.applyConfig(oldRouting.source)
 	} else {
 		// Normalize the cfgBucket to a routeConfig and apply it.
-		routeCfg := buildRouteConfig(bk, agent.useSsl)
+		routeCfg := buildRouteConfig(bk, agent.IsSecure())
 		agent.applyConfig(routeCfg)
 	}
 }
